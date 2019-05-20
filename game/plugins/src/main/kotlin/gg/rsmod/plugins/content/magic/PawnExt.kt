@@ -32,10 +32,10 @@ fun Pawn.prepareForTeleport() {
 }
 
 fun Pawn.teleport(endTile: Tile, type: TeleportType) {
+    lock = LockState.FULL_WITH_DAMAGE_IMMUNITY
+
     queue(TaskPriority.STRONG) {
         prepareForTeleport()
-
-        lock = LockState.FULL_WITH_DAMAGE_IMMUNITY
 
         animate(type.animation)
         type.graphic?.let {
