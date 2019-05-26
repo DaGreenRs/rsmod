@@ -142,6 +142,10 @@ class Tile {
 
     operator fun component3() = height
 
+    operator fun minus(other: Tile): Tile = Tile(x - other.x, z - other.z, height - other.height)
+
+    operator fun plus(other: Tile): Tile = Tile(x + other.x, z + other.z, height + other.height)
+
     companion object {
         /**
          * The total amount of height levels that can be used in the game.
@@ -160,6 +164,12 @@ class Tile {
             val z = ((packed) and 0x3FFF)
             val height = (packed shr 28)
             return Tile(x, z, height)
+        }
+
+        fun fromRegion(region: Int): Tile {
+            val x = ((region shr 8) shl 6)
+            val z = ((region and 0xFF) shl 6)
+            return Tile(x, z)
         }
     }
 }

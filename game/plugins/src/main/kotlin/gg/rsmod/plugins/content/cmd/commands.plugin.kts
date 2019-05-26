@@ -1,5 +1,6 @@
 package gg.rsmod.plugins.content.cmd
 
+import gg.rsmod.game.model.attr.NO_CLIP_ATTR
 import gg.rsmod.game.model.bits.INFINITE_VARS_STORAGE
 import gg.rsmod.game.model.bits.InfiniteVarsType
 import gg.rsmod.game.model.combat.CombatClass
@@ -12,15 +13,6 @@ import gg.rsmod.plugins.content.combat.getCombatTarget
 import gg.rsmod.plugins.content.inter.bank.openBank
 import gg.rsmod.plugins.content.magic.MagicSpells
 import java.text.DecimalFormat
-
-on_command("reboot") {
-    val args = player.getCommandArgs()
-    tryWithUsage(player, args, "Invalid format! Example of proper command <col=801700>::reboot 500</col>") { values ->
-        val cycles = values[0].toInt()
-        world.rebootTimer = cycles
-        world.sendRebootTimer()
-    }
-}
 
 on_command("max") {
     val target = player.getCombatTarget() ?: player
@@ -52,6 +44,15 @@ on_command("empty") {
     player.inventory.removeAll()
 }
 
+on_command("reboot", Privilege.ADMIN_POWER) {
+    val args = player.getCommandArgs()
+    tryWithUsage(player, args, "Invalid format! Example of proper command <col=801700>::reboot 500</col>") { values ->
+        val cycles = values[0].toInt()
+        world.rebootTimer = cycles
+        world.sendRebootTimer()
+    }
+}
+
 on_command("home", Privilege.ADMIN_POWER) {
     val home = world.gameContext.home
     player.moveTo(home)
@@ -61,8 +62,21 @@ on_command("obank", Privilege.ADMIN_POWER) {
     player.openBank()
 }
 
+on_command("noclip", Privilege.ADMIN_POWER) {
+    val noClip = !(player.attr[NO_CLIP_ATTR] ?: false)
+    player.attr[NO_CLIP_ATTR] = noClip
+    player.message("No-clip: ${if (noClip) "<col=178000>enabled</col>" else "<col=801700>disabled</col>"}")
+}
+
 on_command("mypos", Privilege.ADMIN_POWER) {
-    player.message(player.tile.toString() + ", region=${player.tile.regionId}")
+    val instancedMap = world.instanceAllocator.getMap(player.tile)
+    val tile = player.tile
+    if (instancedMap == null) {
+        player.message("Tile=[<col=801700>${tile.x}, ${tile.z}, ${tile.height}</col>], Region=${player.tile.regionId}")
+    } else {
+        val delta = tile - instancedMap.area.bottomLeft
+        player.message("Tile=[<col=801700>${tile.x}, ${tile.z}, ${tile.height}</col>], Relative=[${delta.x}, ${delta.z}]")
+    }
 }
 
 on_command("tele", Privilege.ADMIN_POWER) {
@@ -72,6 +86,15 @@ on_command("tele", Privilege.ADMIN_POWER) {
         val z = values[1].toInt()
         val height = if (values.size > 2) values[2].toInt() else 0
         player.moveTo(x, z, height)
+    }
+}
+
+on_command("teler", Privilege.ADMIN_POWER) {
+    val args = player.getCommandArgs()
+    tryWithUsage(player, args, "Invalid format! Example of proper command <col=801700>::teler 12850</col>") { values ->
+        val region = values[0].toInt()
+        val tile = Tile.fromRegion(region)
+        player.moveTo(tile)
     }
 }
 

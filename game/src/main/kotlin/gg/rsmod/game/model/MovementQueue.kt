@@ -3,7 +3,8 @@ package gg.rsmod.game.model
 import gg.rsmod.game.model.MovementQueue.Step
 import gg.rsmod.game.model.entity.Pawn
 import gg.rsmod.game.sync.block.UpdateBlockType
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Deque
 
 /**
  * Responsible for handling a queue of [Step]s for a [Pawn].
@@ -33,9 +34,9 @@ class MovementQueue(val pawn: Pawn) {
         steps.clear()
     }
 
-    fun addStep(step: Tile, type: StepType) {
+    fun addStep(step: Tile, type: StepType, detectCollision: Boolean) {
         val current = if (steps.any()) steps.peekLast().tile else pawn.tile
-        addStep(current, step, type)
+        addStep(current, step, type, detectCollision)
     }
 
     fun cycle() {
@@ -50,7 +51,7 @@ class MovementQueue(val pawn: Pawn) {
 
             walkDirection = Direction.between(tile, next.tile)
 
-            if (walkDirection != Direction.NONE && collision.canTraverse(tile, walkDirection, projectile = false)) {
+            if (walkDirection != Direction.NONE && (!next.detectCollision || collision.canTraverse(tile, walkDirection, projectile = false))) {
                 tile = Tile(next.tile)
                 pawn.lastFacingDirection = walkDirection
 
@@ -64,7 +65,7 @@ class MovementQueue(val pawn: Pawn) {
                     if (next != null) {
                         runDirection = Direction.between(tile, next.tile)
 
-                        if (collision.canTraverse(tile, runDirection, projectile = false)) {
+                        if (!next.detectCollision || collision.canTraverse(tile, runDirection, projectile = false)) {
                             tile = Tile(next.tile)
                             pawn.lastFacingDirection = runDirection
                         } else {
@@ -88,7 +89,7 @@ class MovementQueue(val pawn: Pawn) {
         }
     }
 
-    private fun addStep(current: Tile, next: Tile, type: StepType) {
+    private fun addStep(current: Tile, next: Tile, type: StepType, detectCollision: Boolean) {
         var dx = next.x - current.x
         var dz = next.z - current.z
         val delta = Math.max(Math.abs(dx), Math.abs(dz))
@@ -107,13 +108,13 @@ class MovementQueue(val pawn: Pawn) {
             }
 
             val step = next.transform(-dx, -dz)
-            steps.add(Step(step, type))
+            steps.add(Step(step, type, detectCollision))
         }
     }
 
     data class StepDirection(val walkDirection: Direction?, val runDirection: Direction?)
 
-    data class Step(val tile: Tile, val type: StepType)
+    data class Step(val tile: Tile, val type: StepType, val detectCollision: Boolean)
 
     enum class StepType {
         NORMAL,
