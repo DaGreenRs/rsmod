@@ -597,6 +597,30 @@ in-packets:
         type: SHORT
         trans: ADD
 
+  - message: gg.rsmod.game.message.impl.OpNpcUMessage
+    type: FIXED
+    opcode: 23
+    length: 11
+    structure:
+      - name: item
+        sign: UNSIGNED
+        order: LITTLE
+        type: SHORT
+        trans: ADD
+      - name: slot
+        sign: UNSIGNED
+        type: SHORT
+      - name: npc_index
+        sign: UNSIGNED
+        order: LITTLE
+        type: SHORT
+        trans: ADD
+      - name: movement_type
+        type: BYTE
+        trans: NEGATE
+      - name: component_hash
+        type: INT
+
   - message: gg.rsmod.game.message.impl.OpNpc1Message
     type: FIXED
     opcode: 71
@@ -1266,12 +1290,6 @@ in-packets:
     type: VARIABLE_SHORT
     opcode: 16
 
-  - message: gg.rsmod.game.message.impl.IgnoreMessage # TODO: OPNPCU
-    type: FIXED
-    opcode: 23
-    length: 11
-    ignore: true
-
   - message: gg.rsmod.game.message.impl.IgnoreMessage # TODO: MESSAGE_PRIVATE
     type: VARIABLE_SHORT
     opcode: 25
@@ -1501,11 +1519,13 @@ in-packets:
         type: BYTE
         trans: SUBTRACT
 
-  - message: gg.rsmod.game.message.impl.IgnoreMessage # TODO: RESUME_P_NAMEDIALOG
+  - message: gg.rsmod.game.message.impl.ResumePNameDialogMessage
     type: VARIABLE_BYTE
     opcode: 95
     length: -1
-    ignore: true
+    structure:
+      - name: name
+        type: STRING
 
   - message: gg.rsmod.game.message.impl.IgnoreMessage # Unknown
     type: FIXED
